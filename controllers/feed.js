@@ -34,7 +34,9 @@ exports.createPost = (req, res, next) => {
     throw error;
   }
 
-  const imageUrl = req.file.path;
+  let path = req.file.path;
+
+  const imageUrl = path.replace("\\","/");
   const title = req.body.title;
   const content = req.body.content;
 
@@ -49,7 +51,7 @@ exports.createPost = (req, res, next) => {
     .then(newPost => {
       res.status(200).json({
         message: 'Post created successfully! ',
-        posts: newPost
+        post: newPost
       });
     })
     .catch(err => {
