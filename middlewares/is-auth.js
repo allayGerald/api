@@ -13,6 +13,7 @@ module.exports = (req, res, next) => {
     const token = req.get('Authorization').split(' ')[1];
 
     let decodedToken;
+    console.log(decodedToken);
 
     try {
         decodedToken = jwt.verify(token, secret);
@@ -27,6 +28,7 @@ module.exports = (req, res, next) => {
         throw error;
     }
 
-    req.userId = decodedToken.userId;
+    console.log(decodedToken.id);
+    req.userId = decodedToken.id;
     next();
 }

@@ -7,10 +7,10 @@ const isAuth = require('../middlewares/is-auth');
 
 router.get('/posts', isAuth, feedController.getPosts);
 
-router.post('/post',  isAuth, [
+router.post('/post', [
     body('content').trim().isLength({ min: 5 }),
     body('title').trim().isLength({ min: 5 })
-], feedController.createPost);
+], isAuth, feedController.createPost);
 
 router.get('/post/:postId', isAuth, feedController.getPost);
 
