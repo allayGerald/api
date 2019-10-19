@@ -146,12 +146,19 @@ exports.editPost = (req, res, next) => {
   const postId = req.params.postId;
   const title = req.body.title;
   const content = req.body.title;
+  const userId = req.userId;
 
   Post.findById(postId)
     .then(post => {
       if (!post) {
         const error = new Error('Could not find post');
         error.statusCode = 404;
+        throw error;
+      }
+
+      if(post.creator.toString() !== userId){
+        const error = new Error('Not authorized');
+        error.statusCode = 403;
         throw error;
       }
 
@@ -180,13 +187,19 @@ exports.editPost = (req, res, next) => {
 
 exports.deletePost = (req, res, next) => {
   const postId = req.params.postId;
-  console.log(postId);
+  const userId = req.userId;
 
   Post.findById(postId)
     .then(post => {
       if (!post) {
         const error = new Error('Could not find post');
         error.statusCode = 404;
+        throw error;
+      }
+
+      if(post.creator.toString() !== userId){
+        const error = new Error('Not authorized');
+        error.statusCode = 403;
         throw error;
       }
 
