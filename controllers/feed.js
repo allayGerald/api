@@ -54,12 +54,6 @@ exports.createPost = (req, res, next) => {
   const imageUrl = path.replace("\\", "/");
   const title = req.body.title;
   const content = req.body.content;
-  console.log({
-    title: title,
-    content: content,
-    imageUrl: imageUrl,
-    creator: req.userId
-  });
 
   const post = new Post({
     title: title,
@@ -156,7 +150,7 @@ exports.editPost = (req, res, next) => {
         throw error;
       }
 
-      if(post.creator.toString() !== userId){
+      if (post.creator.toString() !== userId) {
         const error = new Error('Not authorized');
         error.statusCode = 403;
         throw error;
@@ -197,7 +191,7 @@ exports.deletePost = (req, res, next) => {
         throw error;
       }
 
-      if(post.creator.toString() !== userId){
+      if (post.creator.toString() !== userId) {
         const error = new Error('Not authorized');
         error.statusCode = 403;
         throw error;
@@ -207,8 +201,14 @@ exports.deletePost = (req, res, next) => {
 
       return Post.findByIdAndRemove(postId);
     })
+    .then(() => {
+     return User.findById(userId);
+    })
+    .then(user => {
+      user.posts.pull(postId);
+      return user.save();
+    })
     .then(result => {
-      console.log(result);
       res.status(200).json({ message: 'Deleted successfully' });
     })
     .catch(err => {
