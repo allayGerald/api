@@ -59,6 +59,12 @@ mongoose.connect('mongodb+srv://gerald:1432@cluster0-lqqwb.mongodb.net/blog?retr
         useUnifiedTopology: true
     })
     .then(() => {
-        app.listen(8888);
+       const server = app.listen(8888);
+
+       const io = require('./socket').init(server);
+       io.on('connection', socket => {
+           
+           console.log('connected socket');
+       })
     })
     .catch(err => console.log(err));

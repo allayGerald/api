@@ -1,38 +1,58 @@
 const fs = require('fs');
 const path = require('path');
 const { validationResult } = require('express-validator');
+const io = require('../socket');
 
 const Post = require('../models/posts');
 const User = require('../models/user');
 
-exports.getPosts = (req, res, next) => {
+// using async await 
+
+exports.getPosts = async (req, res, next) => {
   const currentPage = req.query.page || 1;
   const perPage = 2;
-  let totalItems;
+  // let totalItems;
   let creator;
 
-  Post.find()
-    .countDocuments()
-    .then(count => {
-      totalItems = count;
+  try {
+    const totalItems = await Post.find().countDocuments();
+    const posts = await Post.find().skip((currentPage - 1) * perPage).limit(perPage);
 
-      return Post.find()
-        .skip((currentPage - 1) * perPage)
-        .limit(perPage);
-    })
-    .then(posts => {
-      res.status(200).json({
-        posts: posts,
-        totalItems: totalItems
-      });
-    })
-    .catch(err => {
-      if (!err.statusCode) {
-        err.statusCode = 500;
-      }
+    res.status(200).json({
+      posts: posts,
+      totalItems: totalItems
+    });
+  } catch (err) {
+    if (!err.statusCode) {
+      err.statusCode = 500;
+    }
 
-      next(err);
-    })
+    next(err);
+  }
+
+
+  /*  Post.find()
+     .countDocuments()
+     .then(count => {
+       totalItems = count;
+ 
+       return Post.find()
+         .skip((currentPage - 1) * perPage)
+         .limit(perPage);
+     })
+     .then(posts => {
+       res.status(200).json({
+         posts: posts,
+         totalItems: totalItems
+       });
+     })
+     .catch(err => {
+       if (!err.statusCode) {
+         err.statusCode = 500;
+       }
+ 
+       next(err);
+     }) */
 };
 
 exports.createPost = (req, res, next) => {
@@ -71,9 +91,12 @@ exports.createPost = (req, res, next) => {
 
       user.posts.push(post);
       return user.save;
-  
+
     })
     .then(result => {
+
+      io.getIO().emit('posts', {action: 'create', post: post});
+      
       res.status(200).json({
         message: 'Post created successfully! ',
         post: post,
@@ -202,7 +225,7 @@ exports.deletePost = (req, res, next) => {
       return Post.findByIdAndRemove(postId);
     })
     .then(() => {
-     return User.findById(userId);
+      return User.findById(userId);
     })
     .then(user => {
       user.posts.pull(postId);
